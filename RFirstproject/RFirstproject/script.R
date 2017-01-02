@@ -21,9 +21,39 @@ bundCertIntraday <- getIngCertData("PLINGNV00497", "intraday")
 drawCertGraph <- function(graphTitle, inputData) {
     certAsk <- inputData$AskQuotes
     certBid <- inputData$BidQuotes
-    certRange <- range(certAsk[,2], certBid[,2])
+    certRange <- range(certAsk[, 2], certBid[, 2])
     print(certRange)
     plot(certAsk[, 2], type = "l", col = "green", ylim = certRange)
     lines(certBid[, 2], type = "l", col = "red")
     title(main = graphTitle)
 }
+
+initializeData <- function() {
+    titles <- c("adidas", "pgn", "pge", "bund")
+    certs <- c("PLINGNV14787", "PLINGNV04713", "PLINGNV16725", "PLINGNV00497")
+    certItems <- data.frame(titles, certs)
+
+    certItems
+}
+
+drawAllGraphs <- function(itemsList, period) {
+    results <- list()
+
+    for (i in 1:nrow(itemsList)) {
+        print(i)
+        currentItem = itemsList[i,]
+        print(currentItem)
+        currentItemData <- getIngCertData(currentItem$certs, period)
+        results <- append(results, currentItemData)
+    }
+
+    results
+}
+
+d <- initializeData()
+dx <- drawAllGraphs(d, "intraday")
+
+#drawCertGraph("adidas", adidasCertIntraday)
+#drawCertGraph("pgn", pgnCertIntraday)
+#drawCertGraph("pge", pgeCertIntraday)
+#drawCertGraph("bund", bundCertIntraday)
