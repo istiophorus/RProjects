@@ -37,7 +37,9 @@ drawCertGraphOnScreen <- function(screenIndex, graphTitle, inputData) {
 initializeData <- function() {
     titles <- c("adidas", "pgn", "pge", "bund", "brent")
     certs <- c("PLINGNV14787", "PLINGNV04713", "PLINGNV16725", "PLINGNV00497", "PLINGNV12963")
-    certItems <- data.frame(titles, certs)
+    prices <- c(0, 0, 0, 0, 0)
+    amount <- c(0, 0, 0, 0, 0)
+    certItems <- data.frame(titles, certs, prices, amount)
 
     certItems
 }
@@ -80,6 +82,53 @@ drawAllGraphs <- function(itemsList, allData) {
     }
 }
 
+calculateProfit <- function(itemsList, allData) {
+    summaryValue <- 0
+
+    for (i in 1:nrow(itemsList)) {
+        print(i)
+        currentItem = itemsList[i,]
+        print(currentItem)
+        currentItemData <- allData[[i]]
+
+        lastValue <- currentItemData$BidQuotes[nrow(currentItemData$BidQuotes), 2]
+        outcome <- currentItem$prices * currentItem$amount * (1 - 0.0038)
+        income <- lastValue * currentItem$amount * (1 - 0.0038)
+
+        bilans <- income - outcome
+        print(bilans)
+
+        summaryValue <- summaryValue + bilans
+    }
+
+    summaryValue
+}
+
+loadCertDetails <- function() {
+    certDetails <- read.csv(file = "d:/GitHub/export.csv", header = TRUE, sep = ";")
+    certDetails
+}
+
+mergeData <- function(itemsList, certDetails) {
+    #adidas
+    itemsList[1,]$prices <- certDetails[3, 3]
+    itemsList[1,]$amount <- certDetails[3, 2]
+    #pgn
+    itemsList[2,]$prices <- certDetails[7, 3]
+    itemsList[2,]$amount <- certDetails[7, 2]
+    #pge
+    itemsList[3,]$prices <- certDetails[6, 3]
+    itemsList[3,]$amount <- certDetails[6, 2]
+    #bund
+    itemsList[4,]$prices <- certDetails[5, 3]
+    itemsList[4,]$amount <- certDetails[5, 2]
+    #brent
+    itemsList[5,]$prices <- certDetails[4, 3]
+    itemsList[5,]$amount <- certDetails[4, 2]
+
+    itemsList
+}
+
 itemsList <- initializeData()
 allData <- getAllData(itemsList, "intraday")
 drawAllGraphs(itemsList, allData)
@@ -87,6 +136,10 @@ drawAllGraphs(itemsList, allData)
 allDataWeek <- getAllData(itemsList, "week")
 drawAllGraphs(itemsList, allDataWeek)
 
+certDetails <- loadCertDetails()
+newItemsList <- mergeData(itemsList, certDetails)
+
+calculateProfit(newItemsList, allDataWeek)
 
 
 
