@@ -23,19 +23,20 @@ drawCertGraph <- function(graphTitle, inputData) {
     certBid <- inputData$BidQuotes
     certRange <- range(certAsk[, 2], certBid[, 2])
     print(certRange)
-    plot(certAsk[, 2], type = "l", col = "green", ylim = certRange)
-    lines(certBid[, 2], type = "l", col = "red")
+    plot(certAsk[, 2], type = "l", col = "blue", ylim = certRange)
+    lines(certBid[, 2], type = "l", col = "darkgray")
     title(main = graphTitle)
 }
 
 drawCertGraphOnScreen <- function(screenIndex, graphTitle, inputData) {
+    print(screenIndex)
     screen(screenIndex)
     drawCertGraph(graphTitle, inputData)
 }
 
 initializeData <- function() {
-    titles <- c("adidas", "pgn", "pge", "bund")
-    certs <- c("PLINGNV14787", "PLINGNV04713", "PLINGNV16725", "PLINGNV00497")
+    titles <- c("adidas", "pgn", "pge", "bund", "brent")
+    certs <- c("PLINGNV14787", "PLINGNV04713", "PLINGNV16725", "PLINGNV00497", "PLINGNV12963")
     certItems <- data.frame(titles, certs)
 
     certItems
@@ -49,14 +50,11 @@ getAllData <- function(itemsList, period) {
         currentItem = itemsList[i,]
         print(currentItem)
         currentItemData <- getIngCertData(currentItem$certs, period)
-        results <- append(results, currentItemData)
+        results[[i]] <- currentItemData
     }
 
     results
 }
-
-itemsList <- initializeData()
-allData <- getAllData(d, "intraday")
 
 drawAllGraphs <- function(itemsList, allData) {
     par(bg = "white") # erase.screen() will appear not to work
@@ -75,13 +73,20 @@ drawAllGraphs <- function(itemsList, allData) {
         print(i)
         currentItem = itemsList[i,]
         print(currentItem)
-        currentItemData <- allData[i,]
+        currentItemData <- allData[[i]]
 
         drawCertGraphOnScreen(screenIndex, currentItem$titles, currentItemData)
+        screenIndex <- screenIndex + 1
     }
 }
 
+itemsList <- initializeData()
+allData <- getAllData(itemsList, "intraday")
 drawAllGraphs(itemsList, allData)
+
+allDataWeek <- getAllData(itemsList, "week")
+drawAllGraphs(itemsList, allDataWeek)
+
 
 
 
