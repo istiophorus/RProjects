@@ -129,6 +129,14 @@ mergeData <- function(itemsList, certDetails) {
     itemsList
 }
 
+refreshAllDataAndCalculateprofit <- function() {
+    itemsList <- initializeData()
+    allData <- getAllData(itemsList, "intraday")
+    certDetails <- loadCertDetails()
+    newItemsList <- mergeData(itemsList, certDetails)
+    calculateProfit(newItemsList, allData)
+}
+
 itemsList <- initializeData()
 allData <- getAllData(itemsList, "intraday")
 drawAllGraphs(itemsList, allData)
@@ -139,7 +147,9 @@ drawAllGraphs(itemsList, allDataWeek)
 certDetails <- loadCertDetails()
 newItemsList <- mergeData(itemsList, certDetails)
 
-calculateProfit(newItemsList, allDataWeek)
+calculateProfit(newItemsList, allData)
+
+
 
 
 
