@@ -1,15 +1,31 @@
 library(jsonlite)
+library(httr)
 
-getIngCertData = function(symbol, period) {
+getToday <- function() {
+    as.Date(Sys.Date(), format = "%y-%m-%d")
+}
+
+getIngCertData <- function(symbol, period) {
     resource = paste("https://www.ingturbo.pl/services/product/", symbol, "/chart?period=", period, sep = "")
     print(resource)
     fromJSON(resource)
 }
 
-getIngBaseData = function(symbol, period) {
+getIngBaseData <- function(symbol, period) {
     resource = paste("https://www.ingturbo.pl/services/underlying/", symbol, "/chart?period=", period, sep = "")
     print(resource)
     fromJSON(resource)
+}
+
+getWyborczaUrl <- function(symbol, dateValue) {
+    resource = paste("http://xml.wyborcza.biz/exchangeFlashChartsData.servlet?p5=", symbol, "&p7=ONE_WEEK&p9=", dateValue, "&instrumentType=SHARE&disableRedirects=true", sep = "")
+    resource
+}
+
+getDataFromWyborcza <- function(symbol) {
+    resource <- getWyborczaUrl(symbol, getToday())
+    data <- read.csv(file = resource, header = FALSE, sep = ",")
+    data
 }
 
 #adidasWeek <- getIngBaseData("adidas", "week")
@@ -92,6 +108,7 @@ calculateProfit <- function(itemsList, allData) {
         currentItemData <- allData[[i]]
 
         lastValue <- currentItemData$BidQuotes[nrow(currentItemData$BidQuotes), 2]
+        print(lastValue)
         outcome <- currentItem$prices * currentItem$amount * (1 - 0.0038)
         income <- lastValue * currentItem$amount * (1 - 0.0038)
 
@@ -149,7 +166,7 @@ newItemsList <- mergeData(itemsList, certDetails)
 
 calculateProfit(newItemsList, allData)
 
-
+refreshAllDataAndCalculateprofit()
 
 
 
