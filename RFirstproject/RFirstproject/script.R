@@ -1,5 +1,4 @@
 library(jsonlite)
-library(httr)
 
 getToday <- function() {
     as.Date(Sys.Date(), format = "%y-%m-%d")
@@ -19,6 +18,7 @@ getIngBaseData <- function(symbol, period) {
 
 getWyborczaUrl <- function(symbol, dateValue) {
     resource = paste("http://xml.wyborcza.biz/exchangeFlashChartsData.servlet?p5=", symbol, "&p7=ONE_WEEK&p9=", dateValue, "&instrumentType=SHARE&disableRedirects=true", sep = "")
+    print(resource)
     resource
 }
 
@@ -51,24 +51,26 @@ drawCertGraphOnScreen <- function(screenIndex, graphTitle, inputData) {
 }
 
 initializeData <- function() {
-    titles <- c("adidas", "pgn", "pge", "bund", "brent")
-    certs <- c("PLINGNV14787", "PLINGNV04713", "PLINGNV16725", "PLINGNV00497", "PLINGNV12963")
-    prices <- c(0, 0, 0, 0, 0)
-    amount <- c(0, 0, 0, 0, 0)
-    certItems <- data.frame(titles, certs, prices, amount)
-
+    certItems <- read.csv(file = "d:/GitHub/definitions.csv ", header = TRUE, sep = ",")
     certItems
 }
 
 getAllData <- function(itemsList, period) {
+    print("[getAllData]")
     results <- list()
 
     for (i in 1:nrow(itemsList)) {
         print(i)
         currentItem = itemsList[i,]
         print(currentItem)
-        currentItemData <- getIngCertData(currentItem$certs, period)
-        results[[i]] <- currentItemData
+        if (currentItem$source == 'ing') {
+            currentItemData <- getIngCertData(currentItem$certs, period)
+            results[[i]] <- currentItemData
+        }
+        else if (currentItem$source == 'wyb') {
+            currentItemData <- getDataFromWyborcza(currentItem$certs)
+            results[[i]] <- currentItemData
+        }
     }
 
     results
@@ -91,62 +93,88 @@ drawAllGraphs <- function(itemsList, allData) {
         print(i)
         currentItem = itemsList[i,]
         print(currentItem)
-        currentItemData <- allData[[i]]
 
-        drawCertGraphOnScreen(screenIndex, currentItem$titles, currentItemData)
-        screenIndex <- screenIndex + 1
+        if (currentItem$drawGraph) {
+            if (currentItem$source == 'ing') {
+                currentItemData <- allData[[i]]
+
+                drawCertGraphOnScreen(screenIndex, currentItem$titles, currentItemData)
+                screenIndex <- screenIndex + 1
+            }
+            else if (currentItem$source == 'wyb') {
+
+            }
+        }
     }
 }
 
 calculateProfit <- function(itemsList, allData) {
+    print("[calculateProfit]")
     summaryValue <- 0
+
+    ingIndex <- 1
 
     for (i in 1:nrow(itemsList)) {
         print(i)
         currentItem = itemsList[i,]
         print(currentItem)
+
         currentItemData <- allData[[i]]
 
-        lastValue <- currentItemData$BidQuotes[nrow(currentItemData$BidQuotes), 2]
+        if (currentItem$source == 'ing') {
+            lastValue <- currentItemData$BidQuotes[nrow(currentItemData$BidQuotes), 2]
+        }
+        else {
+            lastValue <- currentItemData[2,]$V5
+        }
+
         print(lastValue)
-        outcome <- currentItem$prices * currentItem$amount * (1 - 0.0038)
-        income <- lastValue * currentItem$amount * (1 - 0.0038)
 
-        bilans <- income - outcome
-        print(bilans)
+        if (is.numeric(lastValue)) {
+            outcome <- currentItem$prices * currentItem$amount * (1 - 0.0038)
+            income <- lastValue * currentItem$amount * (1 - 0.0038)
 
-        summaryValue <- summaryValue + bilans
+            bilans <- income - outcome
+            print(bilans)
+            print(bilans / outcome)
+
+            summaryValue <- summaryValue + bilans
+        }
     }
 
     summaryValue
 }
 
 loadCertDetails <- function() {
+    print("[loadCertDetails]")
     certDetails <- read.csv(file = "d:/GitHub/export.csv", header = TRUE, sep = ";")
     certDetails
 }
 
 mergeData <- function(itemsList, certDetails) {
-    #adidas
-    itemsList[1,]$prices <- certDetails[3, 3]
-    itemsList[1,]$amount <- certDetails[3, 2]
-    #pgn
-    itemsList[2,]$prices <- certDetails[7, 3]
-    itemsList[2,]$amount <- certDetails[7, 2]
-    #pge
-    itemsList[3,]$prices <- certDetails[6, 3]
-    itemsList[3,]$amount <- certDetails[6, 2]
-    #bund
-    itemsList[4,]$prices <- certDetails[5, 3]
-    itemsList[4,]$amount <- certDetails[5, 2]
-    #brent
-    itemsList[5,]$prices <- certDetails[4, 3]
-    itemsList[5,]$amount <- certDetails[4, 2]
+    print("[mergeData]")
+    buyPriceIndex = 3
+    amountIndex = 2
+
+    newItemsList <- list()
+
+    for (ix in 1:nrow(itemsList)) {
+        print(ix)
+        currentItem = itemsList[ix,]
+
+        currentItem$prices <- certDetails[currentItem$rowIndex, buyPriceIndex]
+        currentItem$amount <- certDetails[currentItem$rowIndex, amountIndex]
+
+        print(currentItem)
+
+        itemsList[ix,] <- currentItem
+    }
 
     itemsList
 }
 
 refreshAllDataAndCalculateprofit <- function() {
+    print("[refreshAllDataAndCalculateprofit]")
     itemsList <- initializeData()
     allData <- getAllData(itemsList, "intraday")
     certDetails <- loadCertDetails()
@@ -154,25 +182,23 @@ refreshAllDataAndCalculateprofit <- function() {
     calculateProfit(newItemsList, allData)
 }
 
-itemsList <- initializeData()
-allData <- getAllData(itemsList, "intraday")
-drawAllGraphs(itemsList, allData)
+drawAllIntradayGraphs <- function() {
+    itemsList <- initializeData()
+    allData <- getAllData(itemsList, "intraday")
+    drawAllGraphs(itemsList, allData)
+}
 
-allDataWeek <- getAllData(itemsList, "week")
-drawAllGraphs(itemsList, allDataWeek)
+drawAllWeekGraphs <- function() {
+    itemsList <- initializeData()
+    allDataWeek <- getAllData(itemsList, "week")
+    drawAllGraphs(itemsList, allDataWeek)
+}
 
-certDetails <- loadCertDetails()
-newItemsList <- mergeData(itemsList, certDetails)
-
-calculateProfit(newItemsList, allData)
+#certDetails <- loadCertDetails()
+#newItemsList <- mergeData(itemsList, certDetails)
+#calculateProfit(newItemsList, allData)
 
 refreshAllDataAndCalculateprofit()
 
+drawAllWeekGraphs()
 
-
-
-
-#drawCertGraph("adidas", adidasCertIntraday)
-#drawCertGraph("pgn", pgnCertIntraday)
-#drawCertGraph("pge", pgeCertIntraday)
-#drawCertGraph("bund", bundCertIntraday)
