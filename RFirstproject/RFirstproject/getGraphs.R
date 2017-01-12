@@ -3,21 +3,94 @@ library(bitops)
 library(RCurl)
 
 initializeGraphItemsData <- function() {
-    data <- read.csv(file = "d:/GitHub/graphInput.csv", header = TRUE, sep = ",")
+    data = read.csv(file = "d:/GitHub/graphInput.csv", header = TRUE, sep = ",")
     data
 }
 
 getStooqGraphUrl <- function(symbol, period) {
-    resource <- paste("http://stooq.com/c/?s=", symbol, "&c=", period, "&t=l&a=ln")
+    resource = paste("http://stooq.com/c/?s=", symbol, "&c=", period, "&t=l&a=ln", sep="")
     resource
 }
 
-myurl <- "http://stooq.com/c/?s=rcwhtaopen.pl&c=3y&t=l&a=ln"
-my_image <- readPNG(getURLContent(myurl))
+drawSingleImageOnScreen <- function(screenIndex, currentImage, title) {
+    print("[drawSingleImageOnScreen]")
+    print(title)
+    print(screenIndex)
+    screen(screenIndex)
 
-plot(0, type = 'n', xlim = 0:1, ylim = 0:1, main = "Not the best use, but this gives the idea")
-rasterImage(my_image, 0, 0, 1, 1)
+    plot(0, type = 'n', xlim = 0:1, ylim = 0:1, main = title, axes = FALSE)
+    rasterImage(currentImage, 0, 0, 1, 1)
+}
 
-#http://stooq.com/c/?s=rcgldaopen.pl&c=3m&t=l&a=ln
+drawDownloadedGraphs <- function(itemsList, imagesAndTitles) {
+    print("[drawDownloadedGraphs]")
+    par(bg = "white") # erase.screen() will appear not to work
+                      # if the background color is transparent 
+    # (as it is by default on most devices).
 
-#http://stooq.com/c/?s=rcwhtaopen.pl&c=5m&t=l&a=ln
+    par(mar = c(1, 1, 1, 1))
+    par("mar")
+
+    # prepare screens
+
+    split.screen(c(3, 1))
+    split.screen(c(1, 3), screen = 1)
+    split.screen(c(1, 3), screen = 2) 
+    split.screen(c(1, 3), screen = 3) 
+
+    images = imagesAndTitles[[1]]
+    titles = imagesAndTitles[[2]]
+
+    screenIndex = 4
+
+    for (i in 1:length(images)) {
+        print(i)
+        currentImage = images[[i]]
+        currentTitle = titles[[i]]
+
+        print(currentTitle)
+        print(length(currentImage))
+
+        drawSingleImageOnScreen(screenIndex, currentImage, currentTitle)
+        screenIndex = screenIndex + 1
+    }
+}
+
+getSingleImage <- function(imageUrl) {
+    image = readPNG(getURLContent(imageUrl))
+    image
+}
+
+getImages <- function(itemsData, periodSymbol) {
+    print("[getImages]")
+
+    si = nrow(itemsData)
+
+    results = list()
+    imageIndex = 1
+    titles = list()
+
+    for (i in 1:si) {
+        currentItem = itemsData[i,]
+        print(currentItem)
+        if (currentItem$getGraph) {
+            itemUrl = getStooqGraphUrl(currentItem$symbol, periodSymbol)
+            print(itemUrl)
+            nextImage = getSingleImage(itemUrl)
+            results[[imageIndex]] <- nextImage
+            titles[[imageIndex]] <- currentItem$symbol
+            imageIndex = imageIndex + 1
+        }
+    }
+
+    res = list()
+    res[[1]] = results
+    res[[2]] = titles
+
+    res
+}
+
+itemsData <- initializeGraphItemsData()
+imagesWithTitles <- getImages(itemsData, "10d")
+dev.off()
+drawDownloadedGraphs(itemsData, imagesWithTitles)
