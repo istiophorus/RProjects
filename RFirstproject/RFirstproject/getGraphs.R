@@ -71,7 +71,15 @@ getImages <- function(itemsData, periodSymbol) {
         currentItem = itemsData[i,]
         print(currentItem)
         if (currentItem$getGraph) {
-            itemUrl = getStooqGraphUrl(currentItem$symbol, periodSymbol)
+
+            if (is.null(periodSymbol)) {
+                currentPeriodSymbol = currentItem$graphPeriod
+            }
+            else {
+                currentPeriodSymbol = periodSymbol
+            }
+
+            itemUrl = getStooqGraphUrl(currentItem$symbol, currentPeriodSymbol)
             print(itemUrl)
             nextImage = getSingleImage(itemUrl)
             results[[imageIndex]] <- nextImage
@@ -88,5 +96,5 @@ getImages <- function(itemsData, periodSymbol) {
 }
 
 itemsData <- initializeGraphItemsData()
-imagesWithTitles <- getImages(itemsData, "10d")
+imagesWithTitles <- getImages(itemsData, NULL)
 drawDownloadedGraphs(itemsData, imagesWithTitles)
