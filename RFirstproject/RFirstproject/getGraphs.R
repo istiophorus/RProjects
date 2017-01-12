@@ -28,6 +28,7 @@ drawDownloadedGraphs <- function(itemsList, imagesAndTitles) {
                       # if the background color is transparent 
     # (as it is by default on most devices).
 
+    par(mfrow = c(1, 1))
     par(mar = c(1, 1, 1, 1))
     par("mar")
 

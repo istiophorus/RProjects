@@ -28,12 +28,6 @@ getDataFromWyborcza <- function(symbol) {
     data
 }
 
-#adidasWeek <- getIngBaseData("adidas", "week")
-#adidasCertIntraday <- getIngCertData("PLINGNV14787", "intraday")
-#pgeCertIntraday <- getIngCertData("PLINGNV16725", "intraday")
-#pgnCertIntraday <- getIngCertData("PLINGNV04713", "intraday")
-#bundCertIntraday <- getIngCertData("PLINGNV00497", "intraday")
-
 drawCertGraph <- function(graphTitle, inputData) {
     certAsk <- inputData$AskQuotes
     certBid <- inputData$BidQuotes
@@ -77,7 +71,9 @@ getAllData <- function(itemsList, period) {
 }
 
 drawAllGraphs <- function(itemsList, allData) {
-    par(bg = "white") # erase.screen() will appear not to work
+    close.screen(4, all.screens = TRUE)
+
+    par(bg = "white", mfrow = c(1, 1), mar = c(1, 1, 1, 1)) # erase.screen() will appear not to work
                   # if the background color is transparent 
                   # (as it is by default on most devices).
 
@@ -175,30 +171,31 @@ mergeData <- function(itemsList, certDetails) {
 
 refreshAllDataAndCalculateprofit <- function() {
     print("[refreshAllDataAndCalculateprofit]")
-    itemsList <- initializeData()
-    allData <- getAllData(itemsList, "intraday")
-    certDetails <- loadCertDetails()
-    newItemsList <- mergeData(itemsList, certDetails)
+    itemsList = initializeData()
+    allData = getAllData(itemsList, "intraday")
+    certDetails = loadCertDetails()
+    newItemsList = mergeData(itemsList, certDetails)
     calculateProfit(newItemsList, allData)
 }
 
 drawAllIntradayGraphs <- function() {
-    itemsList <- initializeData()
-    allData <- getAllData(itemsList, "intraday")
+    itemsList = initializeData()
+    allData = getAllData(itemsList, "intraday")
     drawAllGraphs(itemsList, allData)
 }
 
 drawAllWeekGraphs <- function() {
-    itemsList <- initializeData()
-    allDataWeek <- getAllData(itemsList, "week")
+    itemsList = initializeData()
+    allDataWeek = getAllData(itemsList, "week")
     drawAllGraphs(itemsList, allDataWeek)
 }
-
-#certDetails <- loadCertDetails()
-#newItemsList <- mergeData(itemsList, certDetails)
-#calculateProfit(newItemsList, allData)
 
 refreshAllDataAndCalculateprofit()
 
 drawAllWeekGraphs()
+
+itemsList <- initializeData()
+allData <- getAllData(itemsList, "intraday")
+drawAllGraphs(itemsList, allData)
+
 
