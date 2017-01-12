@@ -24,13 +24,9 @@ drawSingleImageOnScreen <- function(screenIndex, currentImage, title) {
 
 drawDownloadedGraphs <- function(itemsList, imagesAndTitles) {
     print("[drawDownloadedGraphs]")
-    par(bg = "white") # erase.screen() will appear not to work
-                      # if the background color is transparent 
-    # (as it is by default on most devices).
+    close.screen(4, all.screens = TRUE)
 
-    par(mfrow = c(1, 1))
-    par(mar = c(1, 1, 1, 1))
-    par("mar")
+    par(bg = "white", mfrow = c(1, 1), mar = c(1, 1, 1, 1))
 
     # prepare screens
 
@@ -93,5 +89,4 @@ getImages <- function(itemsData, periodSymbol) {
 
 itemsData <- initializeGraphItemsData()
 imagesWithTitles <- getImages(itemsData, "10d")
-dev.off()
 drawDownloadedGraphs(itemsData, imagesWithTitles)
