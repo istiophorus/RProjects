@@ -1,4 +1,6 @@
 library(jsonlite)
+library(XML)
+library(RCurl)
 
 getToday <- function() {
     as.Date(Sys.Date(), format = "%y-%m-%d")
@@ -49,6 +51,37 @@ initializeData <- function() {
     certItems
 }
 
+getDataFromRcb <- function(currentItem) {
+    print("[getDataFromRcb]")
+    print(currentItem)
+    txt <- getURL(currentItem$sourceUrl)
+    pos <- regexpr("valueFilter:priceFilter2\">(.+)</span><br/>", txt)
+
+    result <- list()
+    buyPrice <- 0
+
+    if (pos[[1]] >= 0) {
+        subt <- substring(txt, pos + 26, pos + 26 + 20) 
+        pos2 <- regexpr("</span><br/>", subt)
+
+        if (pos2[[1]] > 0) {
+            valueTxt <- substr(subt, 0, pos2 - 1)
+            valueTxt <- gsub(",", ".", valueTxt)
+            buyPrice <- as.numeric(valueTxt)
+        }
+        else {
+            print("[b]")
+            print(subt)
+            print(pos2)
+        }
+    }
+    else { print("[a]") }
+
+    result$buyPrice <- buyPrice
+
+    result
+}
+
 getAllData <- function(itemsList, period) {
     print("[getAllData]")
     results <- list()
@@ -64,6 +97,13 @@ getAllData <- function(itemsList, period) {
         else if (currentItem$source == 'wyb') {
             currentItemData <- getDataFromWyborcza(currentItem$certs)
             results[[i]] <- currentItemData
+        }
+        else if (currentItem$source == 'rcb') {
+            currentItemData <- getDataFromRcb(currentItem)
+            results[[i]] <- currentItemData
+        }
+        else {
+            results[[i]] <- currentItem$source
         }
     }
 
@@ -120,8 +160,13 @@ calculateProfit <- function(itemsList, allData) {
         if (currentItem$source == 'ing') {
             lastValue <- currentItemData$BidQuotes[nrow(currentItemData$BidQuotes), 2]
         }
-        else {
+        else if (currentItem$source == 'wyb')
+        {
             lastValue <- currentItemData[2,]$V5
+        }
+        else if (currentItem$source == 'rcb') {
+            #print(currentItemData)
+            lastValue <- currentItemData$buyPrice
         }
 
         print(lastValue)
