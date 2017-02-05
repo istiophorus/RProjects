@@ -59,6 +59,26 @@ calculateRegression <- function(dataFrame) {
     results
 }
 
+splitData <- function(inputRecords, splitRatio, seedValue) {
+    print("[splitData]")
+    print(nrow(inputRecords))
+
+    ## 75% of the sample size
+    smp_size <- floor(splitRatio * nrow(inputRecords))
+
+    ## set the seed to make your partition reproductible
+    set.seed(seedValue)
+    train_ind <- sample(seq_len(nrow(inputRecords)), size = smp_size)
+
+    trainData <- inputRecords[train_ind,]
+    testData <- inputRecords[ - train_ind,]
+
+    result <- list()
+    result[[1]] <- trainData
+    result[[2]] <- testData
+    result
+}
+
 calculateRegressionWithQuality <- function(dataFrame) {
     print("[calculateRegressionWithQuality]")
 
@@ -113,6 +133,17 @@ whiteWineDataWithLogs <- calculateExps(whiteWineDataWithLogs)
 
 whiteWineDataWithLogsFiltered <- whiteWineDataWithLogs[complete.cases(whiteWineDataWithLogs),]
 
+splittedData <- splitData(whiteWineDataWithLogsFiltered, 0.7, 123456)
+
+print(nrow(splittedData[[1]]))
+print(nrow(splittedData[[2]]))
+print(nrow(whiteWineDataWithLogsFiltered))
+
+trainingData <- splittedData[[1]]
+testData <- splittedData[[2]]
+
+regModel <- lm(formula = quality ~ alcohol + density.log + chlorides.log + volatile.acidity.log + total.sulfur.dioxide + fixed.acidity, data = trainingData)
+
 regRes2 <- calculateRegressionWithQuality(whiteWineDataWithLogs)
 
 regRes2Filetered <- regRes2[complete.cases(regRes2),]
@@ -121,26 +152,6 @@ regRes2Filetered2 <- regRes2Filetered[(regRes2Filetered$names2 == "quality"),]
 
 regRes2FilteredOrdered <- regRes2Filetered2[with(regRes2Filetered2, order(corrValuesModule)),]
 
-#regRes <- calculateRegression(whiteWineDataWithLogs)
-
-#regResFiletered <- regRes[complete.cases(regRes),]
-
-#regResFiletered[abs(regResFiletered$corrValues) >= 0.3,]
-
-#regResFiletered[((regResFiletered$names1 == "quality") | (regResFiletered$names2 == "quality") | (regResFiletered$names1 == "quality.log") | (regResFiletered$names2 == "quality.log")),]
-
-#redWineData <- read.csv("d:/GitHub/Data/Dane/wine-quality/winequality-red.csv", header = TRUE, sep = ";", dec = ".")
-
-#certRange <- range(certAsk[, 2], certBid[, 2])
-#print(certRange)
-#cor(mtcars, use="complete.obs", method="kendall")
-
-#cor(whiteWineData, use = "complete.obs", method = "kendall")
-
-plot(whiteWineDataWithLogsFiltered$alcohol, whiteWineDataWithLogsFiltered$quality)
-
-plot(whiteWineDataWithLogsFiltered$chlorides.log, whiteWineDataWithLogsFiltered$quality)
-
 #alcohol +
 #density.log -
 #chlorides.log -
@@ -148,3 +159,4 @@ plot(whiteWineDataWithLogsFiltered$chlorides.log, whiteWineDataWithLogsFiltered$
 #total.sulfur.dioxide -
 #fixed.acidity -
 
+predict(regModel, testData, interval = "confidence")
