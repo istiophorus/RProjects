@@ -131,6 +131,8 @@ whiteWineDataWithLogs <- calculateLogs(whiteWineData)
 
 whiteWineDataWithLogs <- calculateExps(whiteWineDataWithLogs)
 
+whiteWineData$ID <- seq.int(nrow(whiteWineData))
+
 whiteWineDataWithLogsFiltered <- whiteWineDataWithLogs[complete.cases(whiteWineDataWithLogs),]
 
 splittedData <- splitData(whiteWineDataWithLogsFiltered, 0.7, 123456)
@@ -143,6 +145,8 @@ trainingData <- splittedData[[1]]
 testData <- splittedData[[2]]
 
 regModel <- lm(formula = quality ~ alcohol + density.log + chlorides.log + volatile.acidity.log + total.sulfur.dioxide + fixed.acidity, data = trainingData)
+
+fittedData <- fitted(regModel)
 
 regRes2 <- calculateRegressionWithQuality(whiteWineDataWithLogs)
 
@@ -159,4 +163,6 @@ regRes2FilteredOrdered <- regRes2Filetered2[with(regRes2Filetered2, order(corrVa
 #total.sulfur.dioxide -
 #fixed.acidity -
 
-predict(regModel, testData, interval = "confidence")
+testData$predicted <- predict(regModel, testData, interval = "confidence")
+
+
