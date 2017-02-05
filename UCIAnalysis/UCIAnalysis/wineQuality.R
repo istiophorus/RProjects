@@ -1,4 +1,5 @@
 library(Hmisc)
+library(party)
 
 calculateLogs <- function(dataFrame) {
     print("[calculateLogs]")
@@ -144,6 +145,8 @@ print(nrow(whiteWineDataWithLogsFiltered))
 trainingData <- splittedData[[1]]
 testData <- splittedData[[2]]
 
+#regression
+
 regModel <- lm(formula = quality ~ alcohol + density.log + chlorides.log + volatile.acidity.log + total.sulfur.dioxide + fixed.acidity, data = trainingData)
 
 fittedData <- fitted(regModel)
@@ -165,4 +168,10 @@ regRes2FilteredOrdered <- regRes2Filetered2[with(regRes2Filetered2, order(corrVa
 
 testData$predicted <- predict(regModel, testData, interval = "confidence")
 
+# decision trees
 
+treeModel <- ctree(quality ~ alcohol + density.log + chlorides.log + volatile.acidity.log + total.sulfur.dioxide + fixed.acidity, data = trainingData)
+
+print(treeModel)
+
+plot(treeModel)
