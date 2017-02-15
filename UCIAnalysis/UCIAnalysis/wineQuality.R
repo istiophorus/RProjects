@@ -174,4 +174,27 @@ treeModel <- ctree(quality ~ alcohol + density.log + chlorides.log + volatile.ac
 
 print(treeModel)
 
-plot(treeModel)
+#plot(treeModel)
+
+verifyModel <- function(dataModel, testData, predictedColumn, transformationFunction = NULL) {
+    testData$predictedValue <- predict(dataModel, testData)
+
+    if (!is.null(transformationFunction)) {
+        testData$predictedValueTransformed <- transformationFunction(testData$predictedValue)
+    }
+    else {
+        testData$predictedValueTransformed <- testData$predictedValue
+    }
+
+    testData$predictionMinusExpected <- testData$predictedValueTransformed - testData[[predictedColumn]]
+
+    l1 <- length(testData$predictionMinusExpected)
+
+    l2 <- length(testData$predictionMinusExpected[testData$predictionMinusExpected == 0])
+
+    l2 / l1
+}
+
+regVer <- verifyModel(regModel, testData, "quality", round)
+
+treeVer <- verifyModel(treeModel, testData, "quality", round)
