@@ -153,11 +153,11 @@ fittedData <- fitted(regModel)
 
 regRes2 <- calculateRegressionWithQuality(whiteWineDataWithLogs)
 
-regRes2Filetered <- regRes2[complete.cases(regRes2),]
+#regRes2Filetered <- regRes2[complete.cases(regRes2),]
 
-regRes2Filetered2 <- regRes2Filetered[(regRes2Filetered$names2 == "quality"),]
+#regRes2Filetered2 <- regRes2Filetered[(regRes2Filetered$names2 == "quality"),]
 
-regRes2FilteredOrdered <- regRes2Filetered2[with(regRes2Filetered2, order(corrValuesModule)),]
+#regRes2FilteredOrdered <- regRes2Filetered2[with(regRes2Filetered2, order(corrValuesModule)),]
 
 #alcohol +
 #density.log -
@@ -198,3 +198,14 @@ verifyModel <- function(dataModel, testData, predictedColumn, transformationFunc
 regVer <- verifyModel(regModel, testData, "quality", round)
 
 treeVer <- verifyModel(treeModel, testData, "quality", round)
+
+treeModel2 <- ctree(quality ~ alcohol + density.log + chlorides.log + volatile.acidity.log + total.sulfur.dioxide + fixed.acidity, data = trainingData)
+treeVer2 <- verifyModel(treeModel2, testData, "quality", round)
+treeVer2
+
+treeModel3 <- ctree(quality ~ ., data = trainingData)
+treeVer3 <- verifyModel(treeModel3, testData, "quality", round)
+treeVer3
+
+#treeVer3 0.9993197 !!!
+
