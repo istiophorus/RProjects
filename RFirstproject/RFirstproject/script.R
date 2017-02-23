@@ -172,7 +172,7 @@ calculateProfit <- function(itemsList, allData) {
         print(lastValue)
 
         if (is.numeric(lastValue)) {
-            outcome <- currentItem$prices * currentItem$amount * (1 - 0.0038)
+            outcome <- currentItem$prices * currentItem$amount * (1 + 0.0038)
             income <- lastValue * currentItem$amount * (1 - 0.0038)
 
             bilans <- income - outcome
