@@ -1,11 +1,15 @@
 
 library(ggplot2)
 
-poker.results <- read.csv("results2.txt", header = TRUE, sep = ";")
+poker.results <- read.csv("results3.txt", header = TRUE, sep = ";")
 
 x <- seq(1, 10, 1)
 
-pdf("results2.pdf", width = 14, height = 14)
+pdf("results3.pdf", width = 14, height = 14)
+
+poker.results = poker.results[, -12]
+
+poker.results$X <= NULL
 
 plot(x, as.numeric(poker.results[1,])[-1], type = "l", col = "red")
 lines(x, as.numeric(poker.results[2,])[-1], col = "green")
