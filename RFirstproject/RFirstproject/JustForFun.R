@@ -1,3 +1,5 @@
+pdf("d:/dist.pdf")
+
 # normal distribution
 
 norm_numbers <- rnorm(1000)
@@ -20,7 +22,7 @@ p_numbers <- rpois(10000, 1)
 
 boxplot(p_numbers)
 
-hist(p_numbers)
+hist(p_numbers, breaks = 15)
 
 # exponential distribution
 
@@ -29,3 +31,5 @@ e_numbers <- rexp(10000, 1)
 boxplot(e_numbers)
 
 hist(e_numbers)
+
+dev.off()
