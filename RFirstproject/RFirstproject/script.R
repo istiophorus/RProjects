@@ -237,10 +237,10 @@ drawAllWeekGraphs <- function() {
 
 refreshAllDataAndCalculateprofit()
 
-drawAllWeekGraphs()
+#drawAllWeekGraphs()
 
-itemsList <- initializeData()
-allData <- getAllData(itemsList, "intraday")
-drawAllGraphs(itemsList, allData)
+#itemsList <- initializeData()
+#allData <- getAllData(itemsList, "intraday")
+#drawAllGraphs(itemsList, allData)
 
 
