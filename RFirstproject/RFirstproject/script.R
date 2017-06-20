@@ -1,5 +1,6 @@
 library(jsonlite)
 library(XML)
+library(httr)
 library(RCurl)
 
 getToday <- function() {
@@ -54,9 +55,10 @@ initializeData <- function() {
 getDataFromRcb <- function(currentItem) {
     print("[getDataFromRcb]")
     print(currentItem)
-    txt <- getURL(currentItem$sourceUrl)
+    txt <- getURL(currentItem$sourceUrl, .opts = curlOptions(followlocation = TRUE))
+    print(nchar(txt))
     pos <- regexpr("valueFilter:priceFilter2\">(.+)</span><br/>", txt)
-
+    print(pos)
     result <- list()
     buyPrice <- 0
 
@@ -65,6 +67,7 @@ getDataFromRcb <- function(currentItem) {
         pos2 <- regexpr("</span><br/>", subt)
 
         if (pos2[[1]] > 0) {
+            print("[c]")
             valueTxt <- substr(subt, 0, pos2 - 1)
             valueTxt <- gsub(",", ".", valueTxt)
             buyPrice <- as.numeric(valueTxt)
